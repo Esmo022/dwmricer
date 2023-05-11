@@ -8,10 +8,10 @@ sudo pacman -S sxhkd alacritty rofi
 
 echo "Cloneing Stuff"
 cd $HOME/Downloads/
-git clone https://github.com/mtwb47/scripts.git
+git clone https://github.com/Esmo022/scripts.git
 cd
 cd $HOME/.config
-git clone https://github.com/mtwb47/suckless.git
+git clone https://github.com/Esmo022/suckless.git
 
 #Note: Scripts for updates only work on Arch or Arch based distros.
 echo "Moving stuff!"
