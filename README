@@ -1,63 +1,40 @@
-slstatus - suckless status
-==========================
-slstatus is a suckless status monitor for window managers that use WM_NAME
-(e.g. dwm) or stdin to fill the status bar.
-
-
-Features
---------
-- Battery percentage/state/time left
-- CPU usage
-- CPU frequency
-- Custom shell commands
-- Date and time
-- Disk status (free storage, percentage, total storage and used storage)
-- Available entropy
-- Username/GID/UID
-- Hostname
-- IP address (IPv4 and IPv6)
-- Kernel version
-- Keyboard indicators
-- Keymap
-- Load average
-- Network speeds (RX and TX)
-- Number of files in a directory (hint: Maildir)
-- Memory status (free memory, percentage, total memory and used memory)
-- Swap status (free swap, percentage, total swap and used swap)
-- Temperature
-- Uptime
-- Volume percentage (OSS/ALSA)
-- WiFi signal percentage and ESSID
-
+surf - simple webkit-based browser
+==================================
+surf is a simple Web browser based on WebKit/GTK+.
 
 Requirements
 ------------
-Currently slstatus works on FreeBSD, Linux and OpenBSD.
-In order to build slstatus you need the Xlib header files.
+In order to build surf you need GTK+ and Webkit/GTK+ header files.
 
+In order to use the functionality of the url-bar, also install dmenu[0].
 
 Installation
 ------------
-Edit config.mk to match your local setup (slstatus is installed into the
-/usr/local namespace by default).
+Edit config.mk to match your local setup (surf is installed into
+the /usr/local namespace by default).
 
-Afterwards enter the following command to build and install slstatus (if
+Afterwards enter the following command to build and install surf (if
 necessary as root):
 
     make clean install
 
+Running surf
+------------
+run
+	surf [URI]
 
-Running slstatus
-----------------
-See the man page for details.
+See the manpage for further options.
 
+Running surf in tabbed
+----------------------
+For running surf in tabbed[1] there is a script included in the distribution,
+which is run like this:
 
-Configuration
--------------
-slstatus can be customized by creating a custom config.h and (re)compiling the
-source code. This keeps it fast, secure and simple.
+	surf-open.sh [URI]
 
+Further invocations of the script will run surf with the specified URI in this
+instance of tabbed.
 
-Todo
-----
-Cleaning up the whole codebase it the goal before thinking about a release.
+[0] http://tools.suckless.org/dmenu
+[1] http://tools.suckless.org/tabbed
+

@@ -1,67 +1,76 @@
-# See LICENSE file for copyright and license details
-# slstatus - suckless status monitor
+# surf - simple browser
+# See LICENSE file for copyright and license details.
 .POSIX:
 
 include config.mk
 
-REQ = util
-COM =\
-	components/battery\
-	components/cpu\
-	components/datetime\
-	components/disk\
-	components/entropy\
-	components/hostname\
-	components/ip\
-	components/kernel_release\
-	components/keyboard_indicators\
-	components/keymap\
-	components/load_avg\
-	components/netspeeds\
-	components/num_files\
-	components/ram\
-	components/run_command\
-	components/swap\
-	components/temperature\
-	components/uptime\
-	components/user\
-	components/volume\
-	components/wifi
+SRC = surf.c
+WSRC = webext-surf.c
+OBJ = $(SRC:.c=.o)
+WOBJ = $(WSRC:.c=.o)
+WLIB = $(WSRC:.c=.so)
 
-all: slstatus
+all: options surf $(WLIB)
 
-$(COM:=.o): config.mk $(REQ:=.h)
-slstatus.o: slstatus.c slstatus.h arg.h config.h config.mk $(REQ:=.h)
+options:
+	@echo surf build options:
+	@echo "CC            = $(CC)"
+	@echo "CFLAGS        = $(SURFCFLAGS) $(CFLAGS)"
+	@echo "WEBEXTCFLAGS  = $(WEBEXTCFLAGS) $(CFLAGS)"
+	@echo "LDFLAGS       = $(LDFLAGS)"
 
-.c.o:
-	$(CC) -o $@ -c $(CPPFLAGS) $(CFLAGS) $<
+surf: $(OBJ)
+	$(CC) $(SURFLDFLAGS) $(LDFLAGS) -o $@ $(OBJ) $(LIBS)
+
+$(OBJ) $(WOBJ): config.h common.h config.mk
 
 config.h:
 	cp config.def.h $@
 
-slstatus: slstatus.o $(COM:=.o) $(REQ:=.o)
-	$(CC) -o $@ $(LDFLAGS) $(COM:=.o) $(REQ:=.o) slstatus.o $(LDLIBS)
+$(OBJ): $(SRC)
+	$(CC) $(SURFCFLAGS) $(CFLAGS) -c $(SRC)
+
+$(WLIB): $(WOBJ)
+	$(CC) -shared -Wl,-soname,$@ $(LDFLAGS) -o $@ $? $(WEBEXTLIBS)
+
+$(WOBJ): $(WSRC)
+	$(CC) $(WEBEXTCFLAGS) $(CFLAGS) -c $(WSRC)
 
 clean:
-	rm -f slstatus slstatus.o $(COM:=.o) $(REQ:=.o)
+	rm -f surf $(OBJ)
+	rm -f $(WLIB) $(WOBJ)
 
-dist:
-	rm -rf "slstatus-$(VERSION)"
-	mkdir -p "slstatus-$(VERSION)/components"
-	cp -R LICENSE Makefile README config.mk config.def.h \
-	      arg.h slstatus.c $(COM:=.c) $(REQ:=.c) $(REQ:=.h) \
-	      slstatus.1 "slstatus-$(VERSION)"
-	tar -cf - "slstatus-$(VERSION)" | gzip -c > "slstatus-$(VERSION).tar.gz"
-	rm -rf "slstatus-$(VERSION)"
+distclean: clean
+	rm -f config.h surf-$(VERSION).tar.gz
+
+dist: distclean
+	mkdir -p surf-$(VERSION)
+	cp -R LICENSE Makefile config.mk config.def.h README \
+	    surf-open.sh arg.h TODO.md surf.png \
+	    surf.1 $(SRC) $(CSRC) $(WSRC) surf-$(VERSION)
+	tar -cf surf-$(VERSION).tar surf-$(VERSION)
+	gzip surf-$(VERSION).tar
+	rm -rf surf-$(VERSION)
 
 install: all
-	mkdir -p "$(DESTDIR)$(PREFIX)/bin"
-	cp -f slstatus "$(DESTDIR)$(PREFIX)/bin"
-	chmod 755 "$(DESTDIR)$(PREFIX)/bin/slstatus"
-	mkdir -p "$(DESTDIR)$(MANPREFIX)/man1"
-	cp -f slstatus.1 "$(DESTDIR)$(MANPREFIX)/man1"
-	chmod 644 "$(DESTDIR)$(MANPREFIX)/man1/slstatus.1"
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	cp -f surf $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/surf
+	mkdir -p $(DESTDIR)$(LIBDIR)
+	cp -f $(WLIB) $(DESTDIR)$(LIBDIR)
+	for wlib in $(WLIB); do \
+	    chmod 644 $(DESTDIR)$(LIBDIR)/$$wlib; \
+	done
+	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
+	sed "s/VERSION/$(VERSION)/g" < surf.1 > $(DESTDIR)$(MANPREFIX)/man1/surf.1
+	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/surf.1
 
 uninstall:
-	rm -f "$(DESTDIR)$(PREFIX)/bin/slstatus"
-	rm -f "$(DESTDIR)$(MANPREFIX)/man1/slstatus.1"
+	rm -f $(DESTDIR)$(PREFIX)/bin/surf
+	rm -f $(DESTDIR)$(MANPREFIX)/man1/surf.1
+	for wlib in $(WLIB); do \
+	    rm -f $(DESTDIR)$(LIBDIR)/$$wlib; \
+	done
+	- rmdir $(DESTDIR)$(LIBDIR)
+
+.PHONY: all options distclean clean dist install uninstall
